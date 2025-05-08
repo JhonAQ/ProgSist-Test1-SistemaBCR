@@ -3,4 +3,4 @@
 El siguiente diagrama UML de clases nos muestra las relaciones hechas para 
 implementar la funcionalidad que se desea.
 
-[Diagrama UML](./.github/classesUML.png)
+![Diagrama UML](./.github/classesUML.png)
