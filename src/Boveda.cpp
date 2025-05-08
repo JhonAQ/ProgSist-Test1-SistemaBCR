@@ -26,3 +26,7 @@ void Boveda::mostrarSaldo() {
   std::cout << "  Bonos:        " << saldo_bonos << "\n";
   std::cout << "  Joyas:        " << saldo_joyas << "\n";
 }
+
+Plaza* Boveda::getPlaza() const {
+  return plaza;
+}

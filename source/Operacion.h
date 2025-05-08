@@ -31,4 +31,5 @@ public:
   int getBilletes(int valor) const;
   int getBonos() const;
   int getJoyas() const;
+  Plaza* getPlaza() const;
 };

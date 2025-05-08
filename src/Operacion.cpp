@@ -43,3 +43,7 @@ int Operacion::getBilletes(int valor) const {
 
 int Operacion::getBonos() const { return bonos; }
 int Operacion::getJoyas() const { return joyas; }
+
+Plaza* Operacion::getPlaza() const {
+  return plaza;
+}

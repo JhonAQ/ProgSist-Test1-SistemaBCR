@@ -11,4 +11,5 @@ public:
   Boveda(Plaza* plaza);
   void actualizarSaldo(Operacion* op, bool esEntrada);
   void mostrarSaldo();
+  Plaza* getPlaza() const;
 };
