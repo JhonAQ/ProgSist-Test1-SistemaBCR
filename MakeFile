@@ -1,0 +1,14 @@
+CXX = g++
+CXXFLAGS = -std=c++17 -Iinclude
+
+SRC = $(wildcard src/*.cpp)
+OBJ = $(SRC:.cpp=.o)
+EXEC = bcr
+
+all: $(EXEC)
+
+$(EXEC): $(OBJ)
+	$(CXX) $(OBJ) -o $(EXEC)
+
+clean:
+	rm -f $(OBJ) $(EXEC)
