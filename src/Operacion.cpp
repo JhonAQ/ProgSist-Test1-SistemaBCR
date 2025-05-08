@@ -1,48 +1,46 @@
 #include "Operacion.h"
-
 #include "EntidadBancaria.h"
 #include "Plaza.h"
 #include "Transportadora.h"
 
 Operacion::Operacion(string fecha, string tipo,
                      EntidadBancaria* origen, EntidadBancaria* destino,
-                     Transportadora* transportadora, Plaza* plaza,
-                     int b200, int b100, int b50, int b10, int b5,
-                     int bonos, int joyas)
-    : fecha(fecha), tipo(tipo), origen(origen), destino(destino), transportadora(transportadora), plaza(plaza), billetes_200(b200), billetes_100(b100), billetes_50(b50), billetes_10(b10), billetes_5(b5), bonos(bonos), joyas(joyas) {}
+                     Transportadora* transportadora, Plaza* plaza)
+    : fecha(fecha), tipo(tipo), origen(origen), destino(destino), 
+      transportadora(transportadora), plaza(plaza) {}
 
-int Operacion::calcularMontoTotal() const {
-  return billetes_200 * 200 + billetes_100 * 100 +
-         billetes_50 * 50 + billetes_10 * 10 + billetes_5 * 5;
+Operacion::~Operacion() {
+  for (auto patrimonio : patrimonios) {
+    delete patrimonio;
+  }
+  patrimonios.clear();
+}
+
+void Operacion::agregarPatrimonio(Patrimonio* patrimonio) {
+  patrimonios.push_back(patrimonio);
+}
+
+double Operacion::calcularMontoTotal() const {
+  double total = 0.0;
+  for (const auto& patrimonio : patrimonios) {
+    total += patrimonio->calcularValor();
+  }
+  return total;
 }
 
 void Operacion::aplicar() {
-  if (origen) origen->agregarOperacion(this, false);// pa registrar
+  if (origen) origen->agregarOperacion(this, false);
   if (destino) destino->agregarOperacion(this, true);
   if (transportadora) transportadora->registrarOperacion(this);
 }
 
-string Operacion::getFecha() const { return fecha; }
-
-int Operacion::getBilletes(int valor) const {
-  switch (valor) {
-    case 200:
-      return billetes_200;
-    case 100:
-      return billetes_100;
-    case 50:
-      return billetes_50;
-    case 10:
-      return billetes_10;
-    case 5:
-      return billetes_5;
-    default:
-      return 0;
-  }
+string Operacion::getFecha() const { 
+  return fecha; 
 }
 
-int Operacion::getBonos() const { return bonos; }
-int Operacion::getJoyas() const { return joyas; }
+const vector<Patrimonio*>& Operacion::getPatrimonios() const {
+  return patrimonios;
+}
 
 Plaza* Operacion::getPlaza() const {
   return plaza;

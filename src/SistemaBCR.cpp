@@ -1,16 +1,16 @@
 #include "SistemaBCR.h"
-
 #include <iostream>
 #include <map>
-
 #include "Operacion.h"
+#include "PatrimonioMonetario.h"
+#include "PatrimonioBienes.h"
 
 void SistemaBCR::registrarOperacion(Operacion* op) {
   operaciones.push_back(op);
 }
 
 void SistemaBCR::calcularSaldoBCR(string fecha) {
-  int total = 0;
+  double total = 0.0;
   for (Operacion* op : operaciones) {
     if (op->getFecha() == fecha)
       total += op->calcularMontoTotal();
@@ -19,24 +19,33 @@ void SistemaBCR::calcularSaldoBCR(string fecha) {
 }
 
 void SistemaBCR::mostrarInformePorTipoMonedaYBien(string fecha) {
-  map<int, int> billetes;
-  int totalBonos = 0, totalJoyas = 0;
+  map<double, int> billetesSoles;
+  map<string, int> bienes;
 
   for (Operacion* op : operaciones) {
     if (op->getFecha() != fecha) continue;
-    for (int d : {200, 100, 50, 10, 5}) {
-      billetes[d] += op->getBilletes(d);
+    
+    for (const auto& patrimonio : op->getPatrimonios()) {
+      const PatrimonioMonetario* moneda = dynamic_cast<const PatrimonioMonetario*>(patrimonio);
+      if (moneda && moneda->getTipoMoneda() == "soles") {
+        billetesSoles[moneda->getDenominacion()] += moneda->getCantidad();
+        continue;
+      }
+      
+      const PatrimonioBienes* bien = dynamic_cast<const PatrimonioBienes*>(patrimonio);
+      if (bien) {
+        bienes[bien->getTipoBien()] += bien->getCantidad();
+      }
     }
-    totalBonos += op->getBonos();
-    totalJoyas += op->getJoyas();
   }
 
   cout << "===== INFORME BCR - " << fecha << " =====\n";
   cout << "-> Billetes:\n";
-  for (int d : {200, 100, 50, 10, 5}) {
-    cout << "   " << d << ": " << billetes[d] << " unidades\n";
+  for (const auto& [denominacion, cantidad] : billetesSoles) {
+    cout << "   " << denominacion << ": " << cantidad << " unidades\n";
   }
   cout << "-> Bienes:\n";
-  cout << "   Bonos : " << totalBonos << " unidades\n";
-  cout << "   Joyas : " << totalJoyas << " unidades\n";
+  for (const auto& [tipo, cantidad] : bienes) {
+    cout << "   " << tipo << ": " << cantidad << " unidades\n";
+  }
 }

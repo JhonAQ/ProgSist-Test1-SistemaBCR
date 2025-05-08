@@ -5,6 +5,9 @@
 #include "Boveda.h"
 #include "EntidadBancaria.h"
 #include "Operacion.h"
+#include "Patrimonio.h"
+#include "PatrimonioMonetario.h"
+#include "PatrimonioBienes.h"
 #include "Plaza.h"
 #include "SistemaBCR.h"
 #include "Transportadora.h"
@@ -22,7 +25,7 @@ void imprimirTitulo(const string& titulo) {
 }
 
 int main() {
-  // 1 Iniciand
+  // 1 Iniciando
   imprimirTitulo("INICIALIZACIÓN DEL SISTEMA BCR");
 
   cout << "Creando plazas..." << endl;
@@ -61,8 +64,15 @@ int main() {
   cout << "Detalle: 10 billetes de 200, 20 billetes de 100, 15 billetes de 50," << endl;
   cout << "         5 billetes de 10, 0 billetes de 5, 3 bonos, 2 joyas" << endl;
 
-  Operacion* op1 = new Operacion("08/05/2025", "entrega", bcp, interbank,
-                                 hermes, arequipa, 10, 20, 15, 5, 0, 3, 2);
+  Operacion* op1 = new Operacion("08/05/2025", "entrega", bcp, interbank, hermes, arequipa);
+  
+  op1->agregarPatrimonio(new PatrimonioMonetario(10, "Billete de 200", "soles", 200));
+  op1->agregarPatrimonio(new PatrimonioMonetario(20, "Billete de 100", "soles", 100));
+  op1->agregarPatrimonio(new PatrimonioMonetario(15, "Billete de 50", "soles", 50));
+  op1->agregarPatrimonio(new PatrimonioMonetario(5, "Billete de 10", "soles", 10));
+  op1->agregarPatrimonio(new PatrimonioBienes(3, "Bono", "bonos", 1000));
+  op1->agregarPatrimonio(new PatrimonioBienes(2, "Joya", "joyas", 5000));
+  
   cout << "\nAplicando operación..." << endl;
   op1->aplicar();
   sistema.registrarOperacion(op1);
@@ -80,8 +90,15 @@ int main() {
   cout << "Detalle: 5 billetes de 200, 10 billetes de 100, 5 billetes de 50," << endl;
   cout << "         2 billetes de 10, 1 billete de 5, 1 bono, 0 joyas" << endl;
 
-  Operacion* op2 = new Operacion("08/05/2025", "recojo", interbank, bcp,
-                                 hermes, arequipa, 5, 10, 5, 2, 1, 1, 0);
+  Operacion* op2 = new Operacion("08/05/2025", "recojo", interbank, bcp, hermes, arequipa);
+  
+  op2->agregarPatrimonio(new PatrimonioMonetario(5, "Billete de 200", "soles", 200));
+  op2->agregarPatrimonio(new PatrimonioMonetario(10, "Billete de 100", "soles", 100));
+  op2->agregarPatrimonio(new PatrimonioMonetario(5, "Billete de 50", "soles", 50));
+  op2->agregarPatrimonio(new PatrimonioMonetario(2, "Billete de 10", "soles", 10));
+  op2->agregarPatrimonio(new PatrimonioMonetario(1, "Billete de 5", "soles", 5));
+  op2->agregarPatrimonio(new PatrimonioBienes(1, "Bono", "bonos", 1000));
+  
   cout << "\nAplicando operación..." << endl;
   op2->aplicar();
   sistema.registrarOperacion(op2);
@@ -96,27 +113,22 @@ int main() {
 
   cout << "OPERACIÓN 3: BCP entrega valores a Scotiabank en Arequipa" << endl;
   cout << "Transportadora: Prosegur" << endl;
-  cout << "Detalle: 2 billetes de 200, 5 billetes de 100, 10 billetes de 50," << endl;
-  cout << "         8 billetes de 10, 4 billetes de 5, 2 bonos, 1 joya" << endl;
-
-  Operacion* op3 = new Operacion("08/05/2025", "entrega", bcp, scotiabank,
-                                 prosegur, arequipa, 2, 5, 10, 8, 4, 2, 1);
-  cout << "\nAplicando operación..." << endl;
+  
+  Operacion* op3 = new Operacion("08/05/2025", "entrega", bcp, scotiabank, prosegur, arequipa);
+  op3->agregarPatrimonio(new PatrimonioMonetario(3, "Billete de 200", "soles", 200));
+  op3->agregarPatrimonio(new PatrimonioMonetario(5, "Billete de 100", "soles", 100));
+  op3->agregarPatrimonio(new PatrimonioBienes(1, "Joya", "joyas", 5000));
+  
   op3->aplicar();
   sistema.registrarOperacion(op3);
-  cout << "Operación aplicada y registrada en el sistema BCR" << endl;
-
-  imprimirTitulo("REPORTES DEL SISTEMA BCR");
-
-  sistema.calcularSaldoBCR("08/05/2025");
-  cout << endl;
-
-  sistema.mostrarInformePorTipoMonedaYBien("08/05/2025");
-
-  imprimirTitulo("FINALIZANDO SISTEMA");
-  cout << "Liberando recursos..." << endl;
-
-  cout << "Sistema finalizado correctamente" << endl;
-
+  
+  delete arequipa;
+  delete lima;
+  delete hermes;
+  delete prosegur;
+  delete bcp;
+  delete interbank;
+  delete scotiabank;
+  
   return 0;
 }
