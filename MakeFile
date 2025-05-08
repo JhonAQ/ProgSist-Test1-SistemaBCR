@@ -3,7 +3,7 @@ CXXFLAGS = -std=c++17 -Isource
 
 SRC = $(wildcard src/*.cpp)
 OBJ = $(SRC:.cpp=.o)
-EXEC = bcr
+EXEC = bcr.out
 
 all: $(EXEC)
 
