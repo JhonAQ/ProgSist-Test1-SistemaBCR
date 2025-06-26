@@ -1,0 +1,284 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc} % Para la codificación UTF-8
+\usepackage[T1]{fontenc}    % Para la codificación de la fuente
+\usepackage{amsmath}        % Útil para formateo de texto
+\usepackage{listings}       % Para incluir bloques de código C++
+\usepackage{xcolor}         % Para usar colores en los bloques de código
+\usepackage{underscore}     % PARA EL CARÁCTER '_' EN MODO TEXTO (std::runtime_error)
+\usepackage[spanish]{babel} % PARA SOPORTE DE IDIOMA ESPAÑOL (acentos, ñ)
+\selectlanguage{spanish}    % Seleccionar el idioma español
+
+% Configuración del paquete listings para bloques de código C++
+\lstset{
+    language=C++,                       % Lenguaje de programación
+    basicstyle=\ttfamily\footnotesize,  % Fuente aún más pequeña para evitar desbordes
+    numbers=none,                       % No mostrar números de línea
+    breaklines=true,                    % Permitir saltos de línea automáticos
+    breakatwhitespace=false,            % Permitir saltos dentro de palabras largas
+    frame=single,                       % Dibujar un marco alrededor del bloque de código
+    captionpos=b,                       % Posición del título (bottom)
+    keepspaces=true,                    % Mantener espacios
+    showspaces=false,                   % No mostrar espacios como símbolos
+    showstringspaces=false,             % No mostrar espacios en cadenas
+    % Estilos de resaltado de sintaxis
+    keywordstyle=\color{blue}\bfseries,    % Palabras clave en azul y negrita
+    stringstyle=\color{red},               % Cadenas de texto en rojo
+    commentstyle=\color{green!50!black},   % Comentarios en verde oscuro
+    morecomment=[l][\color{magenta}]{//}, % Comentarios de una línea en magenta
+    morecomment=[s][\color{magenta}]{/*}{*/}, % Comentarios de múltiples líneas en magenta
+    % Manejo de UTF-8 en comentarios y cadenas dentro de listings
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'\i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+             {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+             {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1 {¡}{{!`}}1
+             {ü}{{\"u}}1 {Ü}{{\"U}}1
+}
+
+% Define un comando personalizado para código/palabras clave en línea
+\newcommand{\inlinecode}[1]{\texttt{#1}}
+
+\begin{document}
+
+\section*{Documentación de Excepciones del Sistema de Gestión de Bóvedas}
+
+Esta sección documenta la jerarquía de excepciones personalizadas diseñada para el sistema de transporte de valores, basada en el flujo de trabajo y las clases fundamentales identificadas. Estas excepciones son cruciales para garantizar la robustez, claridad y facilidad de depuración del sistema en un entorno de misión crítica.
+
+Todas las excepciones personalizadas heredan de una clase base común, \inlinecode{BovedaException}, que a su vez deriva de \inlinecode{std::runtime_error}, integrándose así con el sistema de manejo de excepciones estándar de \inlinecode{C++}.
+
+\subsection*{Jerarquía de Excepciones}
+
+La siguiente estructura muestra la relación de herencia de las clases de excepción (utilizando caracteres ASCII):
+\begin{verbatim}
+std::exception
+  L-- std::runtime_error
+        L-- BovedaException
+              |-- SaldoInsuficienteException
+              |-- ActivoNoDisponibleException
+              |-- OperacionInvalidaException
+              |-- TipoOperacionNoSoportadoException
+              |-- DatosInvalidosException
+              |-- BovedaNoEncontradaException
+              |-- EntidadBancariaNoEncontradaException
+              |-- TransportadoraNoDisponibleException
+              |-- ConfiguracionInvalidaException
+              L-- ErrorInternoSistemaException
+\end{verbatim}
+
+\subsection*{Clases de Excepción}
+
+\subsubsection*{class \inlinecode{BovedaException : public std::runtime_error}}
+\begin{lstlisting}
+class BovedaException : public std::runtime_error {
+public:
+    explicit BovedaException(const std::string& message);
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Esta es la clase base para \textbf{todas} las excepciones personalizadas específicas del dominio del sistema de gestión de bóvedas. Proporciona una interfaz común y permite la captura genérica de cualquier error relacionado con la lógica de negocio de nuestro sistema.
+
+\paragraph*{Hereda de:} \inlinecode{std::runtime_error}, lo que la hace compatible con el manejo de excepciones estándar de \inlinecode{C++} para errores en tiempo de ejecución.
+
+\paragraph*{Constructor:}
+\begin{itemize}
+    \item \inlinecode{explicit BovedaException(const std::string\& message)}
+    \begin{itemize}
+        \item \textbf{Parámetro \inlinecode{message}:} Un mensaje descriptivo del error que ocurrió. Este mensaje se puede recuperar con el método \inlinecode{what()}.
+    \end{itemize}
+\end{itemize}
+
+\paragraph*{Uso Típico:} No se lanza directamente. Su función principal es servir como base para otras excepciones más específicas y permitir la captura polimórfica de errores de la bóveda.
+
+\subsubsection*{Excepciones Relacionadas con el Estado y los Fondos}
+
+\paragraph*{\textbf{class \inlinecode{SaldoInsuficienteException : public BovedaException}}}
+\begin{lstlisting}
+class SaldoInsuficienteException : public BovedaException {
+public:
+    explicit SaldoInsuficienteException(const std::string& message = "Error de fondos: Saldo insuficiente en la boveda de origen.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Indica que una operación no puede completarse debido a que la bóveda de origen (o la entidad bancaria) no posee la cantidad de fondos requerida.
+
+\paragraph*{Escenario Típico:}
+\begin{itemize}
+    \item Un intento de enviar S/ 1 millón con solo S/ 800,000 disponibles.
+\end{itemize}
+
+\paragraph*{\textbf{class \inlinecode{ActivoNoDisponibleException : public BovedaException}}}
+\begin{lstlisting}
+class ActivoNoDisponibleException : public BovedaException {
+public:
+    explicit ActivoNoDisponibleException(const std::string& message = "Error de activo: El tipo de activo solicitado no esta disponible o es insuficiente.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Se lanza si se intenta realizar una operación con un tipo de activo (moneda, bonos, joyas) que la bóveda de origen no posee, o no en la cantidad necesaria, incluso si el saldo total de la bóveda fuera suficiente con otros activos.
+
+\paragraph*{Escenario Típico:}
+\begin{itemize}
+    \item Intentar retirar 1,000 USD de una bóveda que solo almacena Soles Peruanos (PEN).
+\end{itemize}
+
+\subsubsection*{Excepciones Relacionadas con la Validación de Datos y la Lógica de Negocio}
+
+\paragraph*{\textbf{class \inlinecode{OperacionInvalidaException : public BovedaException}}}
+\begin{lstlisting}
+class OperacionInvalidaException : public BovedaException {
+public:
+    explicit OperacionInvalidaException(const std::string& message = "Error de operacion: La operacion es invalida debido a reglas de negocio o estado.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Indica una violación de las reglas de negocio o una transición de estado ilegal para una operación. Es una excepción general para errores de lógica de negocio que no encajan en otras categorías más específicas.
+
+\paragraph*{Escenarios Típicos:}
+\begin{itemize}
+    \item Intentar cancelar una operación que ya ha sido marcada como "Completada" o "Cancelada".
+    \item Intentar crear una operación \inlinecode{PROVISION\_BCRP} (recibir fondos del BCRP) desde una bóveda comercial, cuando esta operación solo es válida para el BCRP.
+    \item Intentar una transferencia interna con un monto que excede un límite predefinido sin la aprobación adecuada.
+\end{itemize}
+
+\paragraph*{\textbf{class \inlinecode{TipoOperacionNoSoportadoException : public BovedaException}}}
+\begin{lstlisting}
+class TipoOperacionNoSoportadoException : public BovedaException {
+public:
+    explicit TipoOperacionNoSoportadoException(const std::string& message = "Error de tipo: El tipo de operacion especificado no es soportado.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Se lanza si el sistema recibe o intenta procesar un tipo de operación que no está definido o no es reconocido por el sistema (ej. un valor de enumeración inválido para \inlinecode{TipoOperacion}).
+
+\paragraph*{Escenario Típico:}
+\begin{itemize}
+    \item Una integración externa intenta crear una transacción con un \inlinecode{TipoOperacion} como "AJUSTE\_INVENTARIO" que no existe en el catálogo de operaciones del sistema.
+\end{itemize}
+
+\paragraph*{\textbf{class \inlinecode{DatosInvalidosException : public BovedaException}}}
+\begin{lstlisting}
+class DatosInvalidosException : public BovedaException {
+public:
+    explicit DatosInvalidosException(const std::string& message = "Error de datos: Los datos de entrada son invalidos o tienen formato incorrecto.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Indica que los datos proporcionados para una operación o entidad son inválidos, tienen un formato incorrecto o no cumplen con restricciones básicas de entrada.
+
+\paragraph*{Escenario Típico:}
+\begin{itemize}
+    \item Intentar crear una operación con un monto negativo o cero.
+    \item Proporcionar un ID de bóveda no numérico o una fecha en un formato incorrecto.
+\end{itemize}
+
+\subsubsection*{Excepciones Relacionadas con la Disponibilidad y Existencia de Entidades}
+
+\paragraph*{\textbf{class \inlinecode{BovedaNoEncontradaException : public BovedaException}}}
+\begin{lstlisting}
+class BovedaNoEncontradaException : public BovedaException {
+public:
+    explicit BovedaNoEncontradaException(const std::string& message = "Error de entidad: La b\\'oveda especificada no fue encontrada.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Se lanza cuando el sistema intenta interactuar con una bóveda (ya sea de origen o destino) cuyo identificador no corresponde a ninguna bóveda registrada en el sistema.
+
+\paragraph*{Escenario Típico:}
+\begin{itemize}
+    \item Ingresar un ID de bóveda (\inlinecode{BVD\_XYZ}) incorrecto o inexistente al programar una transferencia.
+\end{itemize}
+
+\paragraph*{\textbf{class \inlinecode{EntidadBancariaNoEncontradaException : public BovedaException}}}
+\begin{lstlisting}
+class EntidadBancariaNoEncontradaException : public BovedaException {
+public:
+    explicit EntidadBancariaNoEncontradaException(const std::string& message = "Error de entidad: La entidad bancaria especificada no fue encontrada.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Indica que una operación hace referencia a una entidad bancaria (un banco o el BCRP) que no está registrada o no existe en el sistema.
+
+\paragraph*{Escenario Típico:}
+\begin{itemize}
+    \item Intentar una \inlinecode{TRASLADO\_INTERBANCARIO} a un banco con un RUC que no corresponde a ninguna entidad bancaria conocida.
+\end{itemize}
+
+\paragraph*{\textbf{class \inlinecode{TransportadoraNoDisponibleException : public BovedaException}}}
+\begin{lstlisting}
+class TransportadoraNoDisponibleException : public BovedaException {
+public:
+    explicit TransportadoraNoDisponibleException(const std::string& message = "Error de servicio: La transportadora no esta disponible o no cubre la zona.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Se lanza si la empresa transportadora de valores asignada a una operación no está disponible para el servicio, no cubre la ubicación de destino, o no está habilitada en el sistema.
+
+\paragraph*{Escenario Típico:}
+\begin{itemize}
+    \item Intentar programar un envío con "Transportes XYZ" a una ubicación remota que no está dentro de su área de servicio.
+    \item La transportadora seleccionada está marcada como "inactiva" en el sistema.
+\end{itemize}
+
+\subsubsection*{Excepciones de Sistema / Internas}
+
+\paragraph*{\textbf{class \inlinecode{ConfiguracionInvalidaException : public BovedaException}}}
+\begin{lstlisting}
+class ConfiguracionInvalidaException : public BovedaException {
+public:
+    explicit ConfiguracionInvalidaException(const std::string& message = "Error de configuraci\'on: El sistema no est\'a configurado correctamente.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Indica un problema con la configuración interna del sistema que impide el correcto funcionamiento. Estos errores suelen ser detectados al inicio o durante la inicialización de módulos.
+
+\paragraph*{Escenario Típico:}
+\begin{itemize}
+    \item Los identificadores predefinidos para el BCRP o ciertas bóvedas clave no han sido cargados o son incorrectos en la configuración.
+\end{itemize}
+
+\paragraph*{\textbf{class \inlinecode{ErrorInternoSistemaException : public BovedaException}}}
+\begin{lstlisting}
+class ErrorInternoSistemaException : public BovedaException {
+public:
+    explicit ErrorInternoSistemaException(const std::string& message = "Error interno: Se ha producido un fallo inesperado en el sistema.");
+};
+\end{lstlisting}
+\paragraph*{Propósito:} Una excepción de "último recurso" para errores inesperados y no clasificados que indican un fallo en la lógica interna del sistema o una condición que no debería ocurrir bajo operación normal.
+
+\paragraph*{Escenario Típico:}
+\begin{itemize}
+    \item Un fallo en una dependencia interna, una corrupción de datos en memoria o un estado de objeto inconsistente que no puede ser atribuido a una excepción más específica.
+\end{itemize}
+
+\subsection*{Principios de Uso de las Excepciones}
+
+\paragraph*{\textbf{Lanzar (\inlinecode{throw})}}
+Cuando se detecta una condición de error que la función actual no puede resolver, se crea una instancia de la excepción más específica y se lanza utilizando la palabra clave \inlinecode{throw}.
+\begin{lstlisting}
+throw SaldoInsuficienteException("La cuenta de origen no tiene fondos suficientes.");
+\end{lstlisting}
+
+\paragraph*{\textbf{Capturar (\inlinecode{catch})}}
+Se utilizan bloques \inlinecode{try-catch} para interceptar las excepciones lanzadas. Es crucial colocar los bloques \inlinecode{catch} de las excepciones más específicas antes que los más genéricos en una secuencia \inlinecode{try-catch}.
+\begin{lstlisting}
+try {
+    // Codigo que puede lanzar una excepcion
+    realizarOperacion();
+} catch (const SaldoInsuficienteException& e) {
+    // Tratamiento especifico para saldo insuficiente
+    std::cerr << "ERROR DE SALDO: " << e.what() << std::endl;
+} catch (const BovedaException& e) {
+    // Tratamiento generico para cualquier error del sistema de boveda
+    std::cerr << "ERROR DEL SISTEMA BOVEDA: " << e.what() << std::endl;
+} catch (const std::exception& e) {
+    // Tratamiento para cualquier otra excepcion estandar
+    std::cerr << "ERROR INESPERADO: " << e.what() << std::endl;
+}
+\end{lstlisting}
+
+\paragraph*{\textbf{Mensajes Descriptivos (\inlinecode{what()})}}
+Todas las clases de excepción heredan el método \inlinecode{what()} de \inlinecode{std::runtime_error} (o \inlinecode{std::exception}). Este método devuelve la cadena de caracteres (el mensaje) que se pasó al constructor de la excepción, proporcionando información vital sobre la causa del error.
+
+\paragraph*{\textbf{Relanzamiento (\inlinecode{throw;})}}
+En algunos casos, una función puede capturar una excepción, realizar un procesamiento parcial (ej. loguear el error, limpiar recursos locales) y luego relanzarla (\inlinecode{throw;}) para que un nivel superior de la aplicación pueda manejarla de forma más global.
+\begin{lstlisting}
+try {
+    // Codigo que lanza excepcion
+    throw SaldoInsuficienteException("Faltan fondos.");
+} catch (const BovedaException& e) {
+    // Primer tratamiento: loguear el error
+    std::cerr << "LOG: Error capturado internamente: " << e.what() << std::endl;
+    // Relanzar para tratamiento superior
+    throw;
+}
+\end{lstlisting}
+
+\end{document}
