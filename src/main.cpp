@@ -24,6 +24,94 @@ void imprimirTitulo(const string& titulo) {
   imprimirLinea('=');
 }
 
+void pruebaOperacionesBasicas() {
+    std::cout << "\n=== PRUEBA: Operaciones Básicas ===" << std::endl;
+    
+    try {
+        Boveda boveda1("BOV001", "Banco Central");
+        
+        // Depósitos exitosos
+        boveda1.depositar("USD", 10000.0);
+        boveda1.depositar("EUR", 5000.0);
+        
+        std::cout << "Saldo USD: " << boveda1.consultarSaldo("USD") << std::endl;
+        std::cout << "Saldo EUR: " << boveda1.consultarSaldo("EUR") << std::endl;
+        
+        // Retiro exitoso
+        boveda1.retirar("USD", 2000.0);
+        std::cout << "Saldo USD después del retiro: " << boveda1.consultarSaldo("USD") << std::endl;
+        
+    } catch (const BovedaException& e) {
+        std::cout << "Error inesperado: " << e.what() << std::endl;
+    }
+}
+
+void pruebaExcepciones() {
+    std::cout << "\n=== PRUEBA: Manejo de Excepciones ===" << std::endl;
+    
+    Boveda boveda1("BOV001", "Banco Central");
+    boveda1.depositar("USD", 1000.0);
+    
+    // Prueba 1: Saldo insuficiente
+    try {
+        boveda1.retirar("USD", 2000.0);
+    } catch (const SaldoInsuficienteException& e) {
+        std::cout << "✓ Capturada: " << e.what() << std::endl;
+    }
+    
+    // Prueba 2: Activo no disponible
+    try {
+        boveda1.retirar("JPY", 100.0);
+    } catch (const ActivoNoDisponibleException& e) {
+        std::cout << "✓ Capturada: " << e.what() << std::endl;
+    }
+    
+    // Prueba 3: Datos inválidos
+    try {
+        boveda1.depositar("", 100.0);
+    } catch (const DatosInvalidosException& e) {
+        std::cout << "✓ Capturada: " << e.what() << std::endl;
+    }
+    
+    // Prueba 4: Operación inválida en bóveda inactiva
+    try {
+        boveda1.setActiva(false);
+        boveda1.depositar("USD", 100.0);
+    } catch (const OperacionInvalidaException& e) {
+        std::cout << "✓ Capturada: " << e.what() << std::endl;
+    }
+}
+
+void pruebaTransferencias() {
+    std::cout << "\n=== PRUEBA: Transferencias ===" << std::endl;
+    
+    try {
+        Boveda boveda1("BOV001", "Banco Central");
+        Boveda boveda2("BOV002", "Banco Comercial");
+        
+        boveda1.depositar("USD", 5000.0);
+        
+        std::cout << "Antes de transferencia:" << std::endl;
+        std::cout << "BOV001 USD: " << boveda1.consultarSaldo("USD") << std::endl;
+        std::cout << "BOV002 USD: " << boveda2.consultarSaldo("USD") << std::endl;
+        
+        // Transferencia exitosa
+        boveda1.transferir(boveda2, "USD", 1500.0);
+        
+        std::cout << "Después de transferencia:" << std::endl;
+        std::cout << "BOV001 USD: " << boveda1.consultarSaldo("USD") << std::endl;
+        std::cout << "BOV002 USD: " << boveda2.consultarSaldo("USD") << std::endl;
+        
+        // Transferencia fallida por saldo insuficiente
+        boveda1.transferir(boveda2, "USD", 10000.0);
+        
+    } catch (const SaldoInsuficienteException& e) {
+        std::cout << "✓ Error esperado en transferencia: " << e.what() << std::endl;
+    } catch (const BovedaException& e) {
+        std::cout << "Error: " << e.what() << std::endl;
+    }
+}
+
 int main() {
   // 1 Iniciando
   imprimirTitulo("INICIALIZACIÓN DEL SISTEMA BCR");
@@ -129,6 +217,12 @@ int main() {
   delete bcp;
   delete interbank;
   delete scotiabank;
+  
+  pruebaOperacionesBasicas();
+  pruebaExcepciones();
+  pruebaTransferencias();
+  
+  std::cout << "\n=== FIN DE PRUEBAS ===" << std::endl;
   
   return 0;
 }
