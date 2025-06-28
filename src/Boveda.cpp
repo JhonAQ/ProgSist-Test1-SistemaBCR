@@ -1,60 +1,57 @@
-#include "Boveda.h"
-#include "PatrimonioMonetario.h"
-#include "PatrimonioBienes.h"
+#include "../include/Boveda.h"
+#include "../include/Excepciones.h"
+#include "../include/EntidadBancaria.h"
 #include <iostream>
+#include <iomanip>
+#include <algorithm>
 
-Boveda::Boveda(Plaza* plaza) : plaza(plaza) {}
+Boveda::Boveda(const std::string& id, Plaza* plaza, EntidadBancaria* propietario)
+  : idBoveda(id), plaza(plaza), propietario(propietario) {}
 
-Boveda::~Boveda() {
-  for (auto& [key, patrimonio] : inventario) {
-    delete patrimonio;
-  }
-  inventario.clear();
-}
-
-void Boveda::actualizarSaldo(Operacion* op, bool esEntrada) {
-  for (const auto& patrimonio : op->getPatrimonios()) {
-    std::string clave = patrimonio->getDescripcion();
-    
-    if (inventario.find(clave) == inventario.end()) {
-      inventario[clave] = patrimonio->clonar();
-    } else {
-      int cantidadActual = inventario[clave]->getCantidad();
-      int cambio = patrimonio->getCantidad();
-      
-      if (esEntrada) {
-        inventario[clave]->setCantidad(cantidadActual + cambio);
-      } else {
-        inventario[clave]->setCantidad(cantidadActual - cambio);
-      }
-    }
+void Boveda::agregarActivo(std::unique_ptr<Activo> activo) {
+  if (activo) {
+    activosAlmacenados.push_back(std::move(activo));
   }
 }
 
-void Boveda::mostrarSaldo() {
-  std::cout << "Saldo en boveda de plaza " << plaza->getNombre() << ":\n";
-  
-  std::cout << "-- Monedas --\n";
-  for (const auto& [clave, patrimonio] : inventario) {
-    const PatrimonioMonetario* moneda = dynamic_cast<const PatrimonioMonetario*>(patrimonio);
-    if (moneda) {
-      std::cout << "  " << moneda->getDescripcion() << ": " 
-                << moneda->getCantidad() << " unidades ("
-                << moneda->calcularValor() << " " << moneda->getTipoMoneda() << ")\n";
-    }
+std::unique_ptr<Activo> Boveda::retirarActivo(const std::string& idActivo) {
+  auto it = std::find_if(activosAlmacenados.begin(), activosAlmacenados.end(),
+    [&](const std::unique_ptr<Activo>& activo) {
+      return activo->obtenerId() == idActivo;
+    });
+
+  if (it == activosAlmacenados.end()) {
+    throw ActivoNoEncontradoException();
   }
-  
-  std::cout << "-- Bienes --\n";
-  for (const auto& [clave, patrimonio] : inventario) {
-    const PatrimonioBienes* bien = dynamic_cast<const PatrimonioBienes*>(patrimonio);
-    if (bien) {
-      std::cout << "  " << bien->getDescripcion() << ": " 
-                << bien->getCantidad() << " unidades ("
-                << bien->calcularValor() << " valor estimado)\n";
-    }
-  }
+
+  std::unique_ptr<Activo> activoRetirado = std::move(*it);
+  activosAlmacenados.erase(it);
+  return activoRetirado;
 }
 
-Plaza* Boveda::getPlaza() const {
-  return plaza;
+double Boveda::calcularSaldoPorMoneda(TipoMoneda moneda) const {
+  double total = 0.0;
+  for (const auto& activo : activosAlmacenados) {
+    if (activo->obtenerMonedaEquivalencia() == moneda) {
+      total += activo->obtenerValorEquivalente();
+    }
+  }
+  return total;
+}
+
+void Boveda::imprimirSaldos() const {
+  std::cout << "  Boveda: " << idBoveda << " (" << propietario->obtenerNombre() << ")" << std::endl;
+  std::cout << "    Saldo Consolidado PEN: " << std::fixed << std::setprecision(2) << calcularSaldoPorMoneda(TipoMoneda::PEN) << std::endl;
+  std::cout << "    Saldo Consolidado USD: " << std::fixed << std::setprecision(2) << calcularSaldoPorMoneda(TipoMoneda::USD) << std::endl;
+}
+
+void Boveda::imprimirDetalleActivos() const {
+  std::cout << "  Detalle de Activos en Boveda " << idBoveda << ":" << std::endl;
+  if (activosAlmacenados.empty()) {
+    std::cout << "    (Boveda vacia)" << std::endl;
+  } else {
+    for (const auto& activo : activosAlmacenados) {
+      activo->imprimirDetalles();
+    }
+  }
 }
