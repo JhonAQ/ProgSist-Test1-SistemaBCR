@@ -8,6 +8,9 @@
 #include <iomanip>
 #include <limits>
 
+Sistema::Sistema() = default;
+Sistema::~Sistema() = default;
+
 // helper methods
 namespace {
   std::string obtenerTimestamp() {

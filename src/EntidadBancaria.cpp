@@ -4,6 +4,8 @@
 EntidadBancaria::EntidadBancaria(const std::string& id, const std::string& nombre)
   : idEntidad(id), nombreComercial(nombre) {}
 
+EntidadBancaria::~EntidadBancaria() = default;
+
 void EntidadBancaria::agregarBoveda(std::unique_ptr<Boveda> boveda) {
   if (boveda) {
     bovedas.push_back(std::move(boveda));

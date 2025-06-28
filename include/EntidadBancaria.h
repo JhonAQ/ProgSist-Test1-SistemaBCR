@@ -11,6 +11,7 @@ class Boveda;
 class EntidadBancaria {
 public:
   EntidadBancaria(const std::string& id, const std::string& nombre);
+  ~EntidadBancaria();
 
   void agregarBoveda(std::unique_ptr<Boveda> boveda);
   double obtenerSaldoConsolidado(TipoMoneda moneda) const;

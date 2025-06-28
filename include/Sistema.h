@@ -10,6 +10,9 @@
 
 class Sistema {
 public:
+  Sistema();
+  ~Sistema();
+
   void inicializarDatosDePrueba();
   void cargarOperacionesDesdeCSV(const std::string& filepath);
   void ejecutarMenuPrincipal();
