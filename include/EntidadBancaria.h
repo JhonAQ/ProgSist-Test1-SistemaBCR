@@ -1,17 +1,26 @@
 #pragma once
+
 #include <string>
 #include <vector>
-#include "Boveda.h"
+#include <memory>
+#include "enums.h"
 
-using namespace std;
+// Forward declaration
+class Boveda;
 
 class EntidadBancaria {
-  string nombre;
-  vector<Boveda*> bovedas;
-
 public:
-  EntidadBancaria(string nombre);
-  Boveda* getBovedaPorPlaza(string nombrePlaza);
-  void agregarOperacion(Operacion* op, bool esEntrada);
-  void agregarBoveda(Boveda* boveda);
+  EntidadBancaria(const std::string& id, const std::string& nombre);
+
+  void agregarBoveda(std::unique_ptr<Boveda> boveda);
+  double obtenerSaldoConsolidado(TipoMoneda moneda) const;
+
+  const std::string& obtenerId() const { return idEntidad; }
+  const std::string& obtenerNombre() const { return nombreComercial; }
+  const std::vector<std::unique_ptr<Boveda>>& obtenerBovedas() const { return bovedas; }
+
+private:
+  std::string idEntidad;
+  std::string nombreComercial;
+  std::vector<std::unique_ptr<Boveda>> bovedas; // Composición
 };
