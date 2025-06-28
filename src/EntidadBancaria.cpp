@@ -1,22 +1,19 @@
-#include "EntidadBancaria.h"
+#include "../include/EntidadBancaria.h"
+#include "../include/Boveda.h"
 
-EntidadBancaria::EntidadBancaria(std::string nombre) : nombre(nombre) {}
+EntidadBancaria::EntidadBancaria(const std::string& id, const std::string& nombre)
+  : idEntidad(id), nombreComercial(nombre) {}
 
-void EntidadBancaria::agregarBoveda(Boveda* boveda) {
-  bovedas.push_back(boveda);
+void EntidadBancaria::agregarBoveda(std::unique_ptr<Boveda> boveda) {
+  if (boveda) {
+    bovedas.push_back(std::move(boveda));
+  }
 }
 
-Boveda* EntidadBancaria::getBovedaPorPlaza(std::string nombrePlaza) {
-  for (auto boveda : bovedas) {
-    if (boveda->getPlaza()->getNombre() == nombrePlaza)
-      return boveda;
+double EntidadBancaria::obtenerSaldoConsolidado(TipoMoneda moneda) const {
+  double total = 0.0;
+  for (const auto& boveda : bovedas) {
+    total += boveda->calcularSaldoPorMoneda(moneda);
   }
-  return nullptr;
-}
-
-void EntidadBancaria::agregarOperacion(Operacion* op, bool esEntrada) {
-  Boveda* b = getBovedaPorPlaza(op->getPlaza()->getNombre());
-  if (b) {
-    b->actualizarSaldo(op, esEntrada);
-  }
+  return total;
 }
