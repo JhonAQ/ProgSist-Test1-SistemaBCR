@@ -1,18 +1,49 @@
 #pragma once
-#include "Plaza.h"
-#include "Operacion.h"
-#include <map>
+
 #include <string>
+#include <vector>
+#include <map>
+#include <memory>
+#include "enums.h"
+#include "Activo.h"
+
+// Forward declarations para evitar dependencias circulares.
+class Plaza;
+class EntidadBancaria;
 
 class Boveda {
-  Plaza* plaza;
-  std::map<std::string, Patrimonio*> inventario;
-
 public:
-  Boveda(Plaza* plaza);
-  ~Boveda();
+  Boveda(const std::string& id, Plaza* plaza, EntidadBancaria* propietario);
+  virtual ~Boveda() = default;
+
+  const std::string& obtenerId() const { return idBoveda; }
+  EntidadBancaria* obtenerPropietario() const { return propietario; }
+
+  void agregarActivo(std::unique_ptr<Activo> activo);
+  std::unique_ptr<Activo> retirarActivo(const std::string& idActivo);
   
-  void actualizarSaldo(Operacion* op, bool esEntrada);
-  void mostrarSaldo();
-  Plaza* getPlaza() const;
+  double calcularSaldoPorMoneda(TipoMoneda moneda) const;
+  void imprimirSaldos() const;
+  void imprimirDetalleActivos() const;
+
+protected:
+  std::string idBoveda;
+  Plaza* plaza; // Asociación, no propiedad
+  EntidadBancaria* propietario; // Asociación, no propiedad
+  std::vector<std::unique_ptr<Activo>> activosAlmacenados;
+};
+
+class BovedaCentral : public Boveda {
+public:
+  using Boveda::Boveda;
+};
+
+class BovedaSucursal : public Boveda {
+public:
+  using Boveda::Boveda;
+};
+
+class BovedaBCRP : public Boveda {
+public:
+  using Boveda::Boveda;
 };
