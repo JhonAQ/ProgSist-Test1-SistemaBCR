@@ -1,7 +1,4 @@
-#include "Plaza.h"
+#include "../include/Plaza.h"
 
-Plaza::Plaza(std::string nombre) : nombre(nombre) {}
-
-std::string Plaza::getNombre() {
-  return nombre;
-}
+Plaza::Plaza(const std::string& id, const std::string& ciudad)
+  : idPlaza(id), nombreCiudad(ciudad) {}
