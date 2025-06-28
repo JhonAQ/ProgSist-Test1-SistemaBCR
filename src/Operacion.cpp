@@ -1,47 +1,50 @@
-#include "Operacion.h"
-#include "EntidadBancaria.h"
-#include "Plaza.h"
-#include "Transportadora.h"
+#include "../include/Operacion.h"
+#include "../include/Boveda.h"
+#include "../include/Excepciones.h"
+#include "../include/EntidadBancaria.h"
 
-Operacion::Operacion(string fecha, string tipo,
-                     EntidadBancaria* origen, EntidadBancaria* destino,
-                     Transportadora* transportadora, Plaza* plaza)
-    : fecha(fecha), tipo(tipo), origen(origen), destino(destino), 
-      transportadora(transportadora), plaza(plaza) {}
+Operacion::Operacion(const std::string& id, Boveda* origen, Boveda* destino)
+  : idOperacion(id), estado(EstadoOperacion::PENDIENTE_ASIGNACION), origen(origen), destino(destino) {}
 
-Operacion::~Operacion() {
-  for (auto patrimonio : patrimonios) {
-    delete patrimonio;
+void Operacion::agregarActivo(std::unique_ptr<Activo> activo) {
+  if (activo) {
+    activosTransferidos.push_back(std::move(activo));
   }
-  patrimonios.clear();
 }
 
-void Operacion::agregarPatrimonio(Patrimonio* patrimonio) {
-  patrimonios.push_back(patrimonio);
-}
-
-double Operacion::calcularMontoTotal() const {
-  double total = 0.0;
-  for (const auto& patrimonio : patrimonios) {
-    total += patrimonio->calcularValor();
+void TraspasoInterno::ejecutar() {
+  if (origen->obtenerPropietario() != destino->obtenerPropietario()) {
+    throw OperacionInvalidaException("Traspaso interno debe ser entre bovedas de la misma entidad.");
   }
-  return total;
+  
+  // Lógica de transferencia
+  for (auto& activo : activosTransferidos) {
+    destino->agregarActivo(origen->retirarActivo(activo->obtenerId()));
+  }
+  this->estado = EstadoOperacion::COMPLETADA;
 }
 
-void Operacion::aplicar() {
-  if (origen) origen->agregarOperacion(this, false);
-  if (destino) destino->agregarOperacion(this, true);
-  if (transportadora) transportadora->registrarOperacion(this);
+void TransferenciaInterbancaria::ejecutar() {
+  if (origen->obtenerPropietario() == destino->obtenerPropietario()) {
+    throw OperacionInvalidaException("Transferencia interbancaria debe ser entre bovedas de distintas entidades.");
+  }
+
+  for (auto& activo : activosTransferidos) {
+    destino->agregarActivo(origen->retirarActivo(activo->obtenerId()));
+  }
+  this->estado = EstadoOperacion::COMPLETADA;
 }
 
-string Operacion::getFecha() const { 
-  return fecha; 
-}
+void OperacionBCRP::ejecutar() {
+  bool esBCRPOrigen = (dynamic_cast<BovedaBCRP*>(origen) != nullptr);
+  bool esBCRPDestino = (dynamic_cast<BovedaBCRP*>(destino) != nullptr);
 
-const vector<Patrimonio*>& Operacion::getPatrimonios() const {
-  return patrimonios;
-}
+  if (!esBCRPOrigen && !esBCRPDestino) {
+    throw OperacionInvalidaException("Operacion con BCRP debe involucrar una boveda del BCRP.");
+  }
 
-Plaza* Operacion::getPlaza() const {
-  return plaza;
+  for (auto& activo : activosTransferidos) {
+    destino->agregarActivo(origen->retirarActivo(activo->obtenerId()));
+  }
+  this->estado = EstadoOperacion::COMPLETADA;
 }
