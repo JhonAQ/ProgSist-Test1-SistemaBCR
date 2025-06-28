@@ -1,58 +1,66 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -g -I$(INC_DIR)
+CXXFLAGS = -std=c++17 -Wall -Wextra -g -Iinclude -Iutils
 LDFLAGS =
 
-# Project directories
+# Directorios del proyecto
 SRC_DIR = src
-INC_DIR = include
+UTIL_DIR = utils
 OBJ_DIR = obj
 BIN_DIR = bin
 DATA_DIR = data
 REPORT_DIR = reports
 TEST_DIR = test
 
-# Project files
-# Ahora SOURCES incluye todos los .cpp dentro de SRC_DIR, incluyendo src/main.cpp
-SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
-# Convierte las rutas de los archivos fuente a rutas de archivos objeto
-OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
+# Archivos fuente (.cpp)
+SRCS = $(wildcard $(SRC_DIR)/*.cpp) $(wildcard $(UTIL_DIR)/*.cpp)
+
+# Archivos objeto (.o)
+OBJS = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(filter $(SRC_DIR)/%.cpp, $(SRCS))) \
+       $(patsubst $(UTIL_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(filter $(UTIL_DIR)/%.cpp, $(SRCS)))
+
+# Nombre del ejecutable
 EXECUTABLE = $(BIN_DIR)/gestor_bovedas
 
+# --- Targets ---
 
-# Target por defecto
-all: $(EXECUTABLE)
+# Construir el ejecutable
+all: setup $(EXECUTABLE)
 
-# Regla para enlazar los archivos objeto y crear el ejecutable
-$(EXECUTABLE): $(OBJECTS)
+# Regla de enlazado
+$(EXECUTABLE): $(OBJS)
 	@mkdir -p $(BIN_DIR)
-	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
-	@echo "Ejecutable '$@' creado exitosamente."
+	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
+	@echo "Ejecutable '$@' creado."
 
-# Regla general para compilar un archivo .cpp a un .o
-# Esta regla ahora es suficiente para todos los archivos .cpp en SRC_DIR, incluyendo main.cpp
+# Regla de compilacion para src/
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Target para ejecutar el programa
+# Regla de compilacion para utils/
+$(OBJ_DIR)/%.o: $(UTIL_DIR)/%.cpp
+	@mkdir -p $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Ejecutar el programa
 run: all
-	@echo "--- Ejecutando el Sistema de Gestión de Bóvedas ---"
+	@echo "--- Ejecutando el Sistema de Gestion de Bovedas ---"
 	./$(EXECUTABLE)
-	@echo "--- Fin de la ejecución ---"
+	@echo "--- Fin de la ejecucion ---"
 
-# Target para limpiar los archivos generados
+# Limpiar archivos de compilacion
 clean:
-	@echo "Limpiando archivos generados..."
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
-	@mkdir -p $(REPORT_DIR) # Asegura que el directorio de reportes exista
-	rm -f $(REPORT_DIR)/* # Elimina solo los archivos dentro de reports, no el directorio
+	@echo "Limpiando archivos de compilacion..."
+	@rm -rf $(OBJ_DIR) $(BIN_DIR)
 
-# Target placeholder para pruebas
-test:
-	@echo "Funcionalidad de pruebas no implementada en este Makefile."
+# Limpiar todo (incluyendo reportes)
+clean-all: clean
+	@echo "Limpiando reportes..."
+	@mkdir -p $(REPORT_DIR)
+	@rm -f $(REPORT_DIR)/*
 
-# Crea directorios necesarios
+# Crear estructura de directorios
 setup:
-	@mkdir -p $(INC_DIR) $(SRC_DIR) $(TEST_DIR) $(DATA_DIR) $(REPORT_DIR) $(BIN_DIR) $(OBJ_DIR)
+	@mkdir -p $(INC_DIR) $(SRC_DIR) $(UTIL_DIR) $(TEST_DIR) $(DATA_DIR) $(REPORT_DIR) $(BIN_DIR) $(OBJ_DIR)
 
-.PHONY: all clean run test setup
+.PHONY: all clean clean-all run setup
