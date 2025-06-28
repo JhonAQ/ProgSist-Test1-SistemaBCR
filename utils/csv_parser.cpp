@@ -91,7 +91,7 @@ namespace CsvParser {
     return transportadoras;
   }
 
-  void cargarVehiculos(const std::string& filepath, const std::vector<std::unique_ptr<EmpresaTransportadora>>& transportadoras) {
+  void cargarVehiculos(const std::string& filepath, std::vector<std::unique_ptr<EmpresaTransportadora>>& transportadoras) {
     std::ifstream file(filepath);
     if (!file.is_open()) throw std::runtime_error("No se pudo abrir el archivo: " + filepath);
 
@@ -110,7 +110,7 @@ namespace CsvParser {
     }
   }
 
-  void cargarBovedas(const std::string& filepath, const std::vector<std::unique_ptr<EntidadBancaria>>& entidades, const std::vector<std::unique_ptr<Plaza>>& plazas) {
+  void cargarBovedas(const std::string& filepath, std::vector<std::unique_ptr<EntidadBancaria>>& entidades, const std::vector<std::unique_ptr<Plaza>>& plazas) {
     std::ifstream file(filepath);
     if (!file.is_open()) throw std::runtime_error("No se pudo abrir el archivo: " + filepath);
 
