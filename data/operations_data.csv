@@ -1,0 +1,13 @@
+Fecha,TipoOperacion,Transportadora,Plaza,OrigenId,DestinoId,Activos
+2023-10-26,TraspasoInterno,Hermes,Lima,BCP_CEN,BCP_SURCO,"MONEDA:PEN;B200:100,B50:200"
+2023-10-26,TransferenciaInterbancaria,Prosegur,Lima,BCP_CEN,BBVA_CEN,"MONEDA:USD;B100:500"
+2023-10-27,OperacionBCRP,Hermes,Lima,BCRP_CEN,ITB_CEN,"MONEDA:PEN;B100:5000"
+2023-10-27,TraspasoInterno,Prosegur,Arequipa,BCP_AREQ,BCP_CEN_AREQ,"MONEDA:PEN;B100:20,B50:40,B20:50"
+2023-10-28,TransferenciaInterbancaria,Prosegur,Lima,BBVA_CEN,BCP_CEN,"BONOS:50000.00;5;unidades"
+2023-10-28,TraspasoInterno,Hermes,Lima,ITB_CEN,ITB_MIRA,"MONEDA:USD;B50:100,B20:250"
+2023-10-29,OperacionBCRP,Prosegur,Lima,BBVA_CEN,BCRP_CEN,"MONEDA:PEN;B200:200,B100:100"
+2023-10-29,TransferenciaInterbancaria,Hermes,Trujillo,BCP_TRU,BBVA_TRU,"MONEDA:PEN;B100:150"
+2023-10-30,TraspasoInterno,Prosegur,Lima,BCP_CEN,BCP_SJL,"JOYAS:25000.00;100;gramos|MONEDA:PEN;B50:100"
+2023-10-30,OperacionBCRP,Hermes,Lima,BCRP_CEN,BCP_CEN,"DOCUMENTOS_VALORADOS:75000.00;150;unidades"
+2023-11-01,TransferenciaInterbancaria,Prosegur,Lima,ITB_CEN,BBVA_CEN,"MONEDA:USD;B100:300"
+2023-11-01,TraspasoInterno,Hermes,Cusco,BCP_CUS,BCP_CEN_CUS,"MONEDA:PEN;B50:500"
