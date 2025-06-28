@@ -2,3 +2,4 @@
 *.out
 ./bcr
 buffer.txt
+bin/
