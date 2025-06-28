@@ -12,26 +12,25 @@ REPORT_DIR = reports
 TEST_DIR = test
 
 # Project files
-SOURCES = $(wildcard $(SRC_DIR)/*.cpp) main.cpp
-OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(filter $(SRC_DIR)/%.cpp,$(SOURCES))) \
-          $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(filter %.cpp,$(SOURCES)))
+# Ahora SOURCES incluye todos los .cpp dentro de SRC_DIR, incluyendo src/main.cpp
+SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
+# Convierte las rutas de los archivos fuente a rutas de archivos objeto
+OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
 EXECUTABLE = $(BIN_DIR)/gestor_bovedas
 
 
 # Target por defecto
 all: $(EXECUTABLE)
+
+# Regla para enlazar los archivos objeto y crear el ejecutable
 $(EXECUTABLE): $(OBJECTS)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
 	@echo "Ejecutable '$@' creado exitosamente."
 
-# Target para compilar un .cpp a un .o
+# Regla general para compilar un archivo .cpp a un .o
+# Esta regla ahora es suficiente para todos los archivos .cpp en SRC_DIR, incluyendo main.cpp
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(OBJ_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Target especial para main.cpp
-$(OBJ_DIR)/main.o: main.cpp
 	@mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -44,7 +43,9 @@ run: all
 # Target para limpiar los archivos generados
 clean:
 	@echo "Limpiando archivos generados..."
-	rm -rf $(OBJ_DIR) $(BIN_DIR) $(REPORT_DIR)/*
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	@mkdir -p $(REPORT_DIR) # Asegura que el directorio de reportes exista
+	rm -f $(REPORT_DIR)/* # Elimina solo los archivos dentro de reports, no el directorio
 
 # Target placeholder para pruebas
 test:
